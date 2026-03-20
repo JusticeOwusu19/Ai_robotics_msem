@@ -15,7 +15,7 @@
 <!-- Wheel dimensions -->
 <xacro:property name= "w_rad" value = "0.1"/>
 <xacro:property name= "w_len" value = "0.05"/>
-<xacro:property name= "w_z" value = "-0.03"/>
+<xacro:property name= "w_z" value = "${2*w_rad-bz_dim/2}"/>
 
 <!-- constants -->
 <xacro:property name= "pi_const" value = "3.14159265358"/>
@@ -76,7 +76,7 @@
 <joint name = "dummy_joint" type = "fixed">
 <parent link = "dummy"/>
 <child link = "body"/>
-<origin rpy= "0 0 0" xyz = "0 0 0"/>
+<origin rpy= "0 0 0" xyz = "0 0 ${w_rad}"/>
 </joint>
 
 <!-- ############################## -->
@@ -92,6 +92,9 @@
 <box size = "${bx_dim} ${by_dim} ${bz_dim}"/>
 <origin rpy= "0 0 0" xyz = "0 0 0"/>
 </geometry>
+<material name = "black">
+    <color rgba = "1 1 1 1"/>
+</material>
 </visual>
 
 <collision>
@@ -121,7 +124,7 @@
 <joint name = "wj_LF" type = "continuous">
 <parent link = "body"/>
 <child link = "LF_wheel"/>
-<origin xyz="${-bx_dim/2 - w_len/2} ${-by_dim/2 + w_rad} ${w_z}" rpy="0 0 0"/>
+<origin xyz="${-bx_dim/2 - w_len/2} ${-by_dim/2 + w_rad} ${bz_dim/2 - w_rad}" rpy="0 0 0"/>
     <axis xyz="1 0 0"/>
     <limit effort="${effort}" velocity="${velocity}"/>
     <dynamics damping="${damping}" friction="${friction}"/>
@@ -130,7 +133,7 @@
 <joint name = "wj_LB" type = "continuous">
 <parent link = "body"/>
 <child link = "LB_wheel"/>
-<origin xyz="${-bx_dim/2 - w_len/2 } ${by_dim/2 - w_rad} ${w_z}" rpy="0 0 0"/>
+<origin xyz="${-bx_dim/2 - w_len/2 } ${by_dim/2 - w_rad} ${bz_dim/2 - w_rad}" rpy="0 0 0"/>
     <axis xyz="1 0 0"/>
     <limit effort="${effort}" velocity="${velocity}"/>
     <dynamics damping="${damping}" friction="${friction}"/>
@@ -139,7 +142,7 @@
 <joint name = "wj_RF" type = "continuous">
 <parent link = "body"/>
 <child link = "RF_wheel"/>
-<origin xyz="${bx_dim/2 + w_len/2} ${-by_dim/2 + w_rad} ${w_z}" rpy="0 0 0"/>
+<origin xyz="${bx_dim/2 + w_len/2} ${-by_dim/2 + w_rad} ${bz_dim/2 - w_rad}" rpy="0 0 0"/>
     <axis xyz="1 0 0"/>
     <limit effort="${effort}" velocity="${velocity}"/>
     <dynamics damping="${damping}" friction="${friction}"/>
@@ -148,7 +151,7 @@
 <joint name = "wj_RB" type = "continuous">
 <parent link = "body"/>
 <child link = "RB_wheel"/>
-<origin xyz="${bx_dim/2 + w_len/2} ${by_dim/2 - w_rad} ${w_z}" rpy="0 0 0"/>
+<origin xyz="${bx_dim/2 + w_len/2} ${by_dim/2 - w_rad} ${bz_dim/2 - w_rad}" rpy="0 0 0"/>
     <axis xyz="1 0 0"/>
     <limit effort="${effort}" velocity="${velocity}"/>
     <dynamics damping="${damping}" friction="${friction}"/>
