@@ -1,0 +1,175 @@
+<?xml version="1.0"?>
+<!-- ############################## -->
+<!-- 4 wheeled robot -->
+<!-- Created by Justice John Owusu -->
+<!-- Date 2026-03-18 -->
+<!-- ############################## -->
+
+<robot name= "bob" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+<!-- dimensions of the body -->
+<xacro:property name= "bx_dim" value = "0.4"/>
+<xacro:property name= "by_dim" value = "0.6"/>
+<xacro:property name= "bz_dim" value = "0.15"/>
+
+<!-- Wheel dimensions -->
+<xacro:property name= "w_rad" value = "0.1"/>
+<xacro:property name= "w_len" value = "0.05"/>
+<xacro:property name= "w_z" value = "-0.03"/>
+
+<!-- constants -->
+<xacro:property name= "pi_const" value = "3.14159265358"/>
+
+<!--Densities -->
+<xacro:property name= "b_dens" value = "1"/>
+<xacro:property name= "w_dens" value = "1"/>
+
+<!-- Masses -->
+<xacro:property name= "b_mass" value = "${b_dens* bx_dim * by_dim* bz_dim}"/>
+<xacro:property name= "w_mass" value = "${w_dens* pi_const* w_rad* w_rad* w_len}"/>
+
+<!-- wheel properties -->
+<xacro:property name="I_wheel" value="${0.5 * w_mass * w_rad * w_rad}"/>
+<xacro:property name= "effort" value = "1000"/>
+<xacro:property name = "velocity" value = "1000"/>
+<xacro:property name = "friction" value = "1.0"/>
+<xacro:property name = "damping" value = "1.0"/>
+
+<!-- Wheel inertia -->
+<xacro:macro name="wheel_inertia">
+<inertial>
+<origin rpy= "0 0 0" xyz = "0 0 0"/>
+<mass value = "${w_mass}"/>
+<inertia ixx = "${I_wheel}" ixy = "0.0" ixz = "0.0" iyy = "${I_wheel}" iyz = "0.0" izz= "${I_wheel}"/>
+</inertial>
+</xacro:macro>
+
+<!-- wheel -->
+<xacro:macro name="wheel_def" params = "name">
+<link name="${name}">
+    <visual>
+        <origin rpy = "0 ${pi_const/2} 0 " xyz="0 0 0"/>
+        <geometry>
+            <cylinder radius="${w_rad}" length="${w_len}"/>
+        </geometry>
+        <material name = "black">
+            <color rgba = "0 0 0 1"/>
+        </material>
+    </visual>
+
+    <collision>
+        <geometry>
+            <cylinder radius="${w_rad}" length="${w_len}"/>
+        </geometry>
+        <origin rpy="0  ${pi_const/2} 0" xyz="0 0 0"/>
+    </collision>
+
+    <xacro:wheel_inertia/>
+</link>
+</xacro:macro>
+<!-- ############################## -->
+<!-- Beginning of the dummy link -->
+<!-- ############################## -->
+<link name = "dummy">
+</link>
+
+<joint name = "dummy_joint" type = "fixed">
+<parent link = "dummy"/>
+<child link = "body"/>
+<origin rpy= "0 0 0" xyz = "0 0 0"/>
+</joint>
+
+<!-- ############################## -->
+<!-- end of the dummy link -->
+<!-- ############################## -->
+
+<!-- ############################## -->
+<!-- Beginning of the body link -->
+<!-- ############################## -->
+<link name = "body">
+<visual>
+<geometry>
+<box size = "${bx_dim} ${by_dim} ${bz_dim}"/>
+<origin rpy= "0 0 0" xyz = "0 0 0"/>
+</geometry>
+</visual>
+
+<collision>
+<geometry>
+<box size = "${bx_dim} ${by_dim} ${bz_dim}"/>
+</geometry>
+<origin rpy= "0 0 0" xyz = "0 0 0"/>
+</collision>
+
+<inertial>
+<origin rpy="0 0 0" xyz="0 0 0"/>
+        <mass value="${b_mass}"/>    
+        <inertia ixx="${b_mass*(by_dim*by_dim + bz_dim*bz_dim)/12.0}" 
+        ixy="0.0" ixz="0.0" iyy="${(1.0/12.0)*b_mass*(bx_dim*bx_dim + bz_dim*bz_dim)}"
+        iyz="0.0" izz="${(1.0/12.0)*b_mass*(bx_dim*bx_dim + by_dim*by_dim)}"/>
+</inertial>
+
+</link>
+
+<!-- ############################## -->
+<!-- end of the body link -->
+<!-- ############################## -->
+
+<!-- ############################## -->
+<!-- beginning of the wheel joints -->
+<!-- ############################## -->
+<joint name = "wj_LF" type = "continuous">
+<parent link = "body"/>
+<child link = "LF_wheel"/>
+<origin xyz="${-bx_dim/2 - w_len/2} ${-by_dim/2 + w_rad} ${w_z}" rpy="0 0 0"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="${effort}" velocity="${velocity}"/>
+    <dynamics damping="${damping}" friction="${friction}"/>
+</joint>
+
+<joint name = "wj_LB" type = "continuous">
+<parent link = "body"/>
+<child link = "LB_wheel"/>
+<origin xyz="${-bx_dim/2 - w_len/2 } ${by_dim/2 - w_rad} ${w_z}" rpy="0 0 0"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="${effort}" velocity="${velocity}"/>
+    <dynamics damping="${damping}" friction="${friction}"/>
+</joint>
+
+<joint name = "wj_RF" type = "continuous">
+<parent link = "body"/>
+<child link = "RF_wheel"/>
+<origin xyz="${bx_dim/2 + w_len/2} ${-by_dim/2 + w_rad} ${w_z}" rpy="0 0 0"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="${effort}" velocity="${velocity}"/>
+    <dynamics damping="${damping}" friction="${friction}"/>
+</joint>
+
+<joint name = "wj_RB" type = "continuous">
+<parent link = "body"/>
+<child link = "RB_wheel"/>
+<origin xyz="${bx_dim/2 + w_len/2} ${by_dim/2 - w_rad} ${w_z}" rpy="0 0 0"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="${effort}" velocity="${velocity}"/>
+    <dynamics damping="${damping}" friction="${friction}"/>
+</joint>
+
+<!-- ############################## -->
+<!-- end of the wheel joints -->
+<!-- ############################## -->
+
+<!-- ############################## -->
+<!-- Beginning of wheel links -->
+<!-- ############################## -->
+<xacro:wheel_def name = "LF_wheel"/>
+<xacro:wheel_def name = "LB_wheel"/>
+<xacro:wheel_def name = "RF_wheel"/>
+<xacro:wheel_def name = "RB_wheel"/>
+
+<!-- ############################## -->
+<!-- end of wheel links -->
+<!-- ############################## -->
+
+
+
+</robot>
