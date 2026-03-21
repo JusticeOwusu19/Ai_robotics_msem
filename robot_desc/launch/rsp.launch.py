@@ -32,7 +32,7 @@ def generate_launch_description():
 
     launch_description = LaunchDescription()
     launch_description.add_action(node_robot_state_publisher)
-    launch_description.add_action(node_joint_state_publisher)
+    #launch_description.add_action(node_joint_state_publisher)
     launch_description.add_action(node_rviz)
 
     return launch_description

@@ -56,7 +56,7 @@
         </lidar>
         <topic>scan</topic>
         <!-- check whether it should be gz_frame_id or just frame_id -->
-        <!-- <gz_frame_id>laser_frame</gz_frame_id> -->
+        <frame_id>laser_frame</frame_id>
     </sensor>
 </gazebo>
 </robot>
