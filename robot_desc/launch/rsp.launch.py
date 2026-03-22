@@ -7,32 +7,30 @@ import xacro
 
 
 def generate_launch_description():
-    model_file = os.path.join(get_package_share_directory(
-        "robot_desc"), "model", "robot.urdf.xacro")
+    model_file = os.path.join(
+        get_package_share_directory("robot_desc"),
+        "model",
+        "robot.urdf.xacro"
+    )
     robot_description = xacro.process_file(model_file).toxml()
 
     node_robot_state_publisher = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
         output="screen",
-        parameters=[{"robot_description": robot_description}],
+        parameters=[{
+            "robot_description": robot_description,
+            "use_sim_time": True        # <-- ADDED
+        }],
     )
 
-    node_joint_state_publisher = Node(
-        package="joint_state_publisher",
-        executable="joint_state_publisher",
-        output="screen",
-    )
-
-    node_rviz = Node(
-        package="rviz2",
-        executable="rviz2",
-        output="screen",
-    )
+    # NOTE: joint_state_publisher is commented out correctly —
+    # Gazebo publishes joint states via the bridge, not this node.
+    # Enabling it would conflict with Gazebo's joint states.
 
     launch_description = LaunchDescription()
     launch_description.add_action(node_robot_state_publisher)
-    #launch_description.add_action(node_joint_state_publisher)
-    launch_description.add_action(node_rviz)
 
     return launch_description
+    # RViz is removed from here — it belongs in the main launch file
+    # so it gets sim_time and starts after everything else is ready

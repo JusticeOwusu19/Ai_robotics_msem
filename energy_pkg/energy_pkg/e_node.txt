@@ -1,0 +1,101 @@
+import rclpy
+from geometry_msgs.msg import Twist, Vector3
+from rclpy.node import Node
+from std_msgs.msg import String
+
+
+class EnergyNode(Node):
+    def __init__(self):
+        super().__init__('energy_node')
+        self.energy = 100.0
+
+        # Store previous and current velocity as Vector3-like values
+        self.linear_a  = Vector3()   # previous linear  velocity
+        self.angular_a = Vector3()   # previous angular velocity
+        self.linear_f  = Vector3()   # current  linear  velocity
+        self.angular_f = Vector3()   # current  angular velocity
+
+        self.fm = 5   # forward  motion cost  per grid unit
+        self.bm = 8   # backward motion cost  per grid unit
+        self.rm = 3   # rotation cost per 90°
+
+        self.grid_x   = 1.0
+        self.pi_on_2  = 3.14159265358 / 2   # 90° in radians — cost basis for rotation
+
+        self.subscription = self.create_subscription(
+            Twist, 'cmd_vel', self.listener_callback, 10)
+
+        self.publisher = self.create_publisher(String, 'Energy', 10)
+        self.timer = self.create_timer(1, self.timer_callback)
+
+    # ------------------------------------------------------------------
+    def listener_callback(self, msg):
+        self.get_logger().info('linear x: %s' % msg.linear.x)
+        self.get_logger().info('angular z: %s' % msg.angular.z)
+
+        self.linear_f  = msg.linear   # Vector3
+        self.angular_f = msg.angular  # Vector3
+
+        self.calc_energy_loss()       # evaluate loss on every new command
+
+    # ------------------------------------------------------------------
+    def timer_callback(self):
+        msg = String()
+        msg.data = f"{self.energy:.2f} EU"
+        self.publisher.publish(msg)
+        self.get_logger().info(f'Publishing energy level: {self.energy:.2f} EU')
+
+    # ------------------------------------------------------------------
+    def calc_energy_loss(self):
+
+        # Scalar totals for previous and current commands
+        lina_tot = self.linear_a.x  + self.linear_a.y  + self.linear_a.z
+        anga_tot = self.angular_a.x + self.angular_a.y + self.angular_a.z
+        linf_tot = self.linear_f.x  + self.linear_f.y  + self.linear_f.z
+        angf_tot = self.angular_f.x + self.angular_f.y + self.angular_f.z
+
+        # --- Start / stop penalties -----------------------------------
+        was_still  = (lina_tot == 0 and anga_tot == 0)
+        now_moving = (linf_tot != 0 or  angf_tot != 0)
+        was_moving = (lina_tot != 0 or  anga_tot != 0)
+        now_still  = (linf_tot == 0 and angf_tot == 0)
+
+        if was_still and now_moving:
+            self.get_logger().info("Robot is starting  → -1 EU")
+            self.energy -= 1.0
+
+        if was_moving and now_still:
+            self.get_logger().info("Robot is stopping  → -0.5 EU")
+            self.energy -= 0.5
+
+        # --- Continuous motion loss -----------------------------------
+        # Linear: cost scales with speed as a fraction of one grid unit.
+        # Positive x = forward (fm), negative x = backward (bm).
+        lin_cost = self.fm if linf_tot >= 0 else self.bm
+        tot_lin_loss = abs(linf_tot) * lin_cost / self.grid_x
+
+        # Rotation: cost scales with angular speed as a fraction of 90°.
+        tot_rot_loss = abs(angf_tot) * self.rm / self.pi_on_2
+
+        self.energy -= tot_lin_loss + tot_rot_loss
+
+        self.get_logger().info(
+            f"lin_loss={tot_lin_loss:.3f}  rot_loss={tot_rot_loss:.3f}  "
+            f"energy={self.energy:.2f}")
+
+        # Carry current command forward as the new "previous"
+        self.linear_a  = self.linear_f
+        self.angular_a = self.angular_f
+
+
+# ----------------------------------------------------------------------
+def main(args=None):
+    rclpy.init(args=args)
+    energy_node = EnergyNode()
+    rclpy.spin(energy_node)
+    energy_node.destroy_node()
+    rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()
