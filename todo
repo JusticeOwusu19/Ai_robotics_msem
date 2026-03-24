@@ -1,8 +1,3 @@
-make a node to process commands like turn 90 and move forward 1 grid, move back 1 grid
-process the components and add to an energy variable
-publish energy somewhere 
-
-Fix the thing not moving well in rviz
-add a camera 
-
-make a wall follower node 
+# debug the energy node and make sure it works 
+# debug the camera code and make sure it works
+# figure out why the rviz is moving wierd and fix it    

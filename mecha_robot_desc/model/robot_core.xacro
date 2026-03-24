@@ -1,0 +1,163 @@
+<?xml version="1.0"?>
+<!-- ############################## -->
+<!-- 4 wheeled mecanum robot -->
+<!-- Created by Justice John Owusu -->
+<!-- Date 2026-03-18 -->
+<!-- Updated for Mecanum Drive -->
+<!-- Updated wheels to spheres -->
+<!-- ############################## -->
+
+<robot name="bob"
+    xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- dimensions of the body -->
+    <xacro:property name="bx_dim" value="0.4"/>
+    <xacro:property name="by_dim" value="0.6"/>
+    <xacro:property name="bz_dim" value="0.15"/>
+
+    <!-- Wheel dimensions — only radius needed for a sphere -->
+    <xacro:property name="w_rad" value="0.1"/>
+
+    <!-- Constants -->
+    <xacro:property name="pi_const" value="3.14159265358"/>
+
+    <!-- Densities -->
+    <xacro:property name="b_dens" value="1"/>
+    <xacro:property name="w_dens" value="1"/>
+
+    <!-- Masses -->
+    <xacro:property name="b_mass" value="${b_dens * bx_dim * by_dim * bz_dim}"/>
+    <!-- Volume of a sphere: (4/3) * pi * r^3 -->
+    <xacro:property name="w_mass" value="${w_dens * (4.0/3.0) * pi_const * w_rad * w_rad * w_rad}"/>
+
+    <!-- Wheel properties -->
+    <!-- Inertia of a solid sphere: (2/5) * m * r^2 — same for all axes -->
+    <xacro:property name="I_wheel" value="${(2.0/5.0) * w_mass * w_rad * w_rad}"/>
+    <xacro:property name="effort" value="1000"/>
+    <xacro:property name="velocity" value="1000"/>
+    <xacro:property name="friction" value="1.0"/>
+    <xacro:property name="damping" value="1.0"/>
+
+    <!-- Wheel inertia macro -->
+    <xacro:macro name="wheel_inertia">
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="${w_mass}"/>
+            <!-- Solid sphere: Ixx = Iyy = Izz = (2/5)*m*r^2, all products of inertia = 0 -->
+            <inertia ixx="${I_wheel}" ixy="0.0" ixz="0.0" iyy="${I_wheel}" iyz="0.0" izz="${I_wheel}"/>
+        </inertial>
+    </xacro:macro>
+
+    <!-- Wheel link macro — no rpy_val needed, spheres are rotationally symmetric -->
+    <xacro:macro name="wheel_def" params="name">
+        <link name="${name}">
+            <visual>
+                <origin rpy="0 0 0" xyz="0 0 0"/>
+                <geometry>
+                    <sphere radius="${w_rad}"/>
+                </geometry>
+                <material name="black">
+                    <color rgba="0 0 0 1"/>
+                </material>
+            </visual>
+
+            <collision>
+                <origin rpy="0 0 0" xyz="0 0 0"/>
+                <geometry>
+                    <sphere radius="${w_rad}"/>
+                </geometry>
+            </collision>
+
+            <xacro:wheel_inertia/>
+        </link>
+    </xacro:macro>
+
+    <!-- ############################## -->
+    <!-- Dummy link -->
+    <!-- ############################## -->
+    <link name="dummy"/>
+
+    <joint name="dummy_joint" type="fixed">
+        <parent link="dummy"/>
+        <child link="body"/>
+        <origin rpy="0 0 0" xyz="0 0 ${w_rad}"/>
+    </joint>
+
+    <!-- ############################## -->
+    <!-- Body link -->
+    <!-- ############################## -->
+    <link name="body">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <box size="${bx_dim} ${by_dim} ${bz_dim}"/>
+            </geometry>
+            <material name="white">
+                <color rgba="1 1 1 1"/>
+            </material>
+        </visual>
+
+        <collision>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <box size="${bx_dim} ${by_dim} ${bz_dim}"/>
+            </geometry>
+        </collision>
+
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="${b_mass}"/>
+            <inertia ixx="${b_mass * (by_dim*by_dim + bz_dim*bz_dim) / 12.0}" ixy="0.0" ixz="0.0" iyy="${(1.0/12.0) * b_mass * (bx_dim*bx_dim + bz_dim*bz_dim)}" iyz="0.0" izz="${(1.0/12.0) * b_mass * (bx_dim*bx_dim + by_dim*by_dim)}"/>
+        </inertial>
+    </link>
+
+    <!-- ############################## -->
+    <!-- Wheel joints -->
+    <!-- ############################## -->
+    <joint name="wj_LF" type="continuous">
+        <parent link="body"/>
+        <child link="LF_wheel"/>
+        <origin xyz="${-bx_dim/2} ${-by_dim/2 + w_rad} ${bz_dim/2 - w_rad}" rpy="0 0 0"/>
+        <axis xyz="0 1 0"/>
+        <limit effort="${effort}" velocity="${velocity}"/>
+        <dynamics damping="${damping}" friction="${friction}"/>
+    </joint>
+
+    <joint name="wj_LB" type="continuous">
+        <parent link="body"/>
+        <child link="LB_wheel"/>
+        <origin xyz="${-bx_dim/2} ${by_dim/2 - w_rad} ${bz_dim/2 - w_rad}" rpy="0 0 0"/>
+        <axis xyz="0 1 0"/>
+        <limit effort="${effort}" velocity="${velocity}"/>
+        <dynamics damping="${damping}" friction="${friction}"/>
+    </joint>
+
+    <joint name="wj_RF" type="continuous">
+        <parent link="body"/>
+        <child link="RF_wheel"/>
+        <origin xyz="${bx_dim/2} ${-by_dim/2 + w_rad} ${bz_dim/2 - w_rad}" rpy="0 0 0"/>
+        <axis xyz="0 1 0"/>
+        <limit effort="${effort}" velocity="${velocity}"/>
+        <dynamics damping="${damping}" friction="${friction}"/>
+    </joint>
+
+    <joint name="wj_RB" type="continuous">
+        <parent link="body"/>
+        <child link="RB_wheel"/>
+        <origin xyz="${bx_dim/2 } ${by_dim/2 - w_rad} ${bz_dim/2 - w_rad}" rpy="0 0 0"/>
+        <axis xyz="0 1 0"/>
+        <limit effort="${effort}" velocity="${velocity}"/>
+        <dynamics damping="${damping}" friction="${friction}"/>
+    </joint>
+
+    <!-- ############################## -->
+    <!-- Wheel links                    -->
+    <!-- Spheres are symmetric — no     -->
+    <!-- rpy_val parameter needed       -->
+    <!-- ############################## -->
+    <xacro:wheel_def name="LF_wheel"/>
+    <xacro:wheel_def name="LB_wheel"/>
+    <xacro:wheel_def name="RF_wheel"/>
+    <xacro:wheel_def name="RB_wheel"/>
+
+</robot>
