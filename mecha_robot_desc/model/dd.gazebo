@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<!-- ############################## -->
+<!-- GAZEBO ADDITIONAL DESCRIPTION OF THE 4 WHEELED ROBOT -->
+<!-- Made by Justice John Owusu -->
+<!-- Date 2026-02-18 -->
+<!-- ############################## -->
+<robot>
+<!-- Everything is described here -->
+<!-- mu1 and mu2 are friction coefficients -->
+
+<gazebo reference="body">
+<mu1>0.2</mu1>
+<mu2>0.2</mu2>
+<material>Gazebo/Grey</material>
+</gazebo>
+
+
+<gazebo reference="LF_wheel">
+<mu1>0.2</mu1>
+<mu2>0.2</mu2>
+<material>Gazebo/Black</material>
+</gazebo>
+
+
+<gazebo reference="LB_wheel">
+<mu1>0.2</mu1>
+<mu2>0.2</mu2>
+<material>Gazebo/Black</material>
+</gazebo>
+
+
+<gazebo reference="RF_wheel">
+<mu1>0.2</mu1>
+<mu2>0.2</mu2>
+<material>Gazebo/Black</material>
+</gazebo>
+
+
+<gazebo reference="RB_wheel">
+<mu1>0.2</mu1>
+<mu2>0.2</mu2>
+<material>Gazebo/Black</material>
+</gazebo>
+
+<!-- Controller for the 4-wheeled robot -->
+<gazebo>
+<plugin filename="gz-sim-diff-drive-system" name="gz::sim::systems::DiffDrive">
+
+    <!-- Front pair -->
+    <left_joint>wj_LF</left_joint>
+    <right_joint>wj_RF</right_joint>
+
+    <!-- Rear pair -->
+    <left_joint>wj_LB</left_joint>
+    <right_joint>wj_RB</right_joint>
+
+    <!-- Kinematics -->
+    <wheel_separation>${by_dim + w_len}</wheel_separation>
+    <wheel_radius>${w_rad}</wheel_radius>
+
+    <!-- Command and odometry topics -->
+    <topic>/cmd_vel</topic>
+    <odom_topic>/odom</odom_topic>
+    <tf_topic>/tf</tf_topic>
+
+    <!-- Frames -->
+    <frame_id>odom</frame_id>
+    <child_frame_id>body</child_frame_id>
+
+    <!-- output rate -->
+    <odom_publish_frequency>50</odom_publish_frequency>
+
+    <publish_wheel_tfs>true</publish_wheel_tfs>
+    <publish_wheel_odom_tf>true</publish_wheel_odom_tf>
+
+</plugin>
+</gazebo>
+
+</robot>

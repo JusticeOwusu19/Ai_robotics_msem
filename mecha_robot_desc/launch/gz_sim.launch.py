@@ -3,12 +3,7 @@ import os
 import xacro
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import (
-    IncludeLaunchDescription,
-    TimerAction,
-    RegisterEventHandler
-)
-from launch.event_handlers import OnProcessExit
+from launch.actions import IncludeLaunchDescription, TimerAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 
@@ -19,7 +14,7 @@ def generate_launch_description():
     # Robot description — processed ONCE here and passed to RSP           #
     # ------------------------------------------------------------------ #
     model_file = os.path.join(
-        get_package_share_directory("robot_desc"),
+        get_package_share_directory("mecha_robot_desc"),
         "model",
         "robot.urdf.xacro"
     )
@@ -63,13 +58,13 @@ def generate_launch_description():
         arguments=[
             "-topic", "robot_description",
             "-name", "HJRobo",
-            "-z", "0.15"   
+            "-z", "0.15"
         ],
         output="screen"
     )
 
     delayed_spawn = TimerAction(
-        period=3.0,           
+        period=10.0,
         actions=[spawn_node]
     )
 
@@ -120,5 +115,5 @@ def generate_launch_description():
         gazebo_launch,                  # 2. Start Gazebo
         delayed_spawn,                  # 3. Spawn robot after 3s
         ros_gz_bridge,                  # 4. Bridge
-        delayed_rviz,                   # 5. RViz last after 5s
+        # delayed_rviz,                   # 5. RViz last after 5s
     ])
