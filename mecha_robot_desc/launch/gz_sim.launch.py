@@ -1,5 +1,5 @@
 import os
-
+from launch_ros.substitutions import FindPackageShare
 import xacro
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
@@ -9,7 +9,10 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
+    world_pkg = FindPackageShare('ashbot_world').find('ashbot_world')
+    world = 'maze_gems.world'
 
+    world_file = os.path.join(world_pkg, 'worlds', world)
     # ------------------------------------------------------------------ #
     # Robot description — processed ONCE here and passed to RSP           #
     # ------------------------------------------------------------------ #
@@ -46,7 +49,8 @@ def generate_launch_description():
 
     gazebo_launch = IncludeLaunchDescription(
         gz_sim_launch,
-        launch_arguments={"gz_args": "-r empty.sdf"}.items(),
+        launch_arguments={'gz_args': f'-r -v4 {world_file}',
+                          'on_exit_shutdown': 'true'}.items(),
     )
 
     # ------------------------------------------------------------------ #
